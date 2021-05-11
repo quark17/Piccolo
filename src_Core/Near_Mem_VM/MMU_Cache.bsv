@@ -1401,6 +1401,7 @@ module mkMMU_Cache  #(parameter Bool dmem_not_imem)  (MMU_Cache_IFC);
    // Pick victim way, update ctag.
    // Initiate read of word64_set in cache for read-modify-write of word64
 
+   (* mutually_exclusive = "rl_start_cache_refill, req" *)
    rule rl_start_cache_refill ((rg_state == CACHE_START_REFILL) && (ctr_wr_rsps_pending.value == 0));
       if (cfg_verbosity > 1)
 	 $display ("%0d: %s.rl_start_cache_refill: ", cur_cycle, d_or_i);
@@ -1486,6 +1487,7 @@ module mkMMU_Cache  #(parameter Bool dmem_not_imem)  (MMU_Cache_IFC);
    //     initiate read of next word64_set from ram
    //         (for set read-modify-write; not relevant for direct-mapped)
 
+   (* mutually_exclusive = "rl_cache_refill_rsps_loop, req" *)
    rule rl_cache_refill_rsps_loop (rg_state == CACHE_REFILL);
       let mem_rsp <- pop_o (master_xactor.o_rd_data);
       if (cfg_verbosity > 2) begin
@@ -1576,6 +1578,7 @@ module mkMMU_Cache  #(parameter Bool dmem_not_imem)  (MMU_Cache_IFC);
    // After tlb and cache refills, redo the missing request,
    // i.e., probe the TLB and cache (BRAM port B) again
 
+   (* mutually_exclusive = "rl_rereq, req" *)
    rule rl_rereq (rg_state == CACHE_REREQ);
       rg_state <= MODULE_RUNNING;
       fa_req_ram_B (rg_addr);
